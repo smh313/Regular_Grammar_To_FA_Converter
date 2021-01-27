@@ -11,11 +11,11 @@ import java.util.Scanner;
  * to FA
  */
 public class Main {
-    
+
     public static void main(String[] args) {
-        
+
         Scanner input = new Scanner(System.in);
-        
+
         ArrayList<String> lines = new ArrayList<>();
         String line;
 //        while (!(line = input.nextLine()).isEmpty()) {
@@ -24,32 +24,44 @@ public class Main {
 
         GrammarParser gp = new GrammarParser();
         FA fa = new FA();
-        
-        String s = "S->abA";
+
+        String s = "S->aA";
         lines.add(s);
-        s = "A->baA";
+        s = "A->bcdfaA";
         lines.add(s);
-        s = "A->acB";
-        lines.add(s);
-//        s = "B->ac";
+//        s = "A->acB";
+//        lines.add(s);
+//        s = "B->acS";
 //        lines.add(s);
 
-        ArrayList<State> states = new ArrayList<>();
-        State s1 = new State("q1");
-        State s2 = new State("q2");
-        State s3 = new State("q3");
-        
-        states.add(s1);
-        states.add(s2);
-        states.add(s3);
-        
-      
-        
+//        ArrayList<State> states = new ArrayList<>();
+//        State s1 = new State("q1");
+//        State s2 = new State("q2");
+//        State s3 = new State("q3");
+//        
+//        states.add(s1);
+//        states.add(s2);
+//        states.add(s3);
 
-//        gp.ParseMultipleLines(lines);
-//        gp.toString();
+
+
+//        ArrayList<State> qs = new ArrayList<>();
+//        State q = new State("q" + 1);
+//        State lastq = q;
+//        qs.add(q);
+//        System.out.println("q=" + q.getName());
+//        System.out.println("lastq=" + lastq.getName());
+//        System.out.println("qs=" + qs.get(0).getName());
 //
-//        fa.convertPRsToTransition(gp.getPrs());
+//        q = new State("q" + 2);
+//        System.out.println("q=" + q.getName());
+//        System.out.println("lastq=" + lastq.getName());
+//        System.out.println("qs=" + qs.get(0).getName());
+
+        gp.ParseMultipleLines(lines);
+        gp.toString();
+
+        fa.convertPRsToTransition(gp.getPrs());
     }
-    
+
 }
