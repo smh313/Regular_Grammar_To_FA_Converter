@@ -20,12 +20,16 @@ public class ProductionRule {
     Variable destV;
     ArrayList<Character> Terminals;
     boolean hasDestV = true;
-    boolean isLL; //Leftlinear
+    boolean isRL; //Leftlinear
 
-    
     @Override
     public String toString() {
-        String s = (srcV.symbol + " to " + destV.symbol + " " + Terminals.toString());
+        String s;
+        if (!hasDestV) {
+            s = (srcV.symbol + " to " + "lambda" + " " + Terminals.toString());
+        } else {
+            s = (srcV.symbol + " to " + destV.symbol + " " + Terminals.toString());
+        }
         return s; //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -66,11 +70,11 @@ public class ProductionRule {
         this.hasDestV = hasDestV;
     }
 
-    public boolean isIsLL() {
-        return isLL;
+    public boolean isIsRL() {
+        return isRL;
     }
 
-    public void setIsLL(boolean isLL) {
-        this.isLL = isLL;
+    public void setIsRL(boolean isRL) {
+        this.isRL = isRL;
     }
 }

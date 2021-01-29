@@ -26,7 +26,7 @@ public class Transition {
 
     @Override
     public String toString() {
-        return "Transition{" + "srcState=" + srcState.getName() + ", Terminal=" + Terminal + '}' + ", destState=" + destState.getName();
+        return "Transition{" + "" + srcState.getName() + " --" + Terminal + "--> " + destState.getName() + '}';
     }
 
     //getters & setters
