@@ -1,9 +1,13 @@
 
 import GrammarToNFa.FA;
 import GrammarToNFa.GrammarParser;
+import GrammarToNFa.ProductionRule;
 import GrammarToNFa.State;
+import GrammarToNFa.Transition;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -12,81 +16,82 @@ import java.util.Scanner;
  */
 public class Main {
 
-    public static ArrayList<String> StartCreatingFA() {
-        Scanner input = new Scanner(System.in);
+    public static String inputStart(Scanner input) {
+        String s = input.next();
+        return s;
+    }
+
+    public static ArrayList<String> inputLines(Scanner input) {
         ArrayList<String> lines = new ArrayList<>();
         String line;
+        line = input.nextLine();
+        line = input.nextLine();
         do {
-            line = input.nextLine();
             lines.add(line);
+            line = input.nextLine();
         } while (!line.isEmpty());
         return lines;
+    }
+
+    public static void StartProcess(Scanner input, ArrayList<String> lines) {
+        System.out.println("Enter Your Regular grammar:");
+
+        String startV = inputStart(input);
+        lines = inputLines(input);
+
+        GrammarParser gp = new GrammarParser();
+        FA fa = new FA();
+
+        gp.ParseMultipleLines(lines);
+//        gp.toString();
+
+        for (ProductionRule pr : gp.getPrs()) {
+            if (pr.isHasDestV()) {
+                fa.setIsRL(pr.isIsRL());
+                break;
+            }
+        }
+        fa.setStartState(new State(startV));
+        fa.convertPRsToTransition(gp.getPrs());
+        if (!fa.isIsRL()) {
+            fa = fa.reverseAndSortTransitions();
+        }
+        System.out.println("\nNFA for L is:");
+        System.out.println(fa.toString());
+
+        System.out.println("Enter your string:");
+        String lString = input.next();
+        fa.acceptor(lString);
+
+        FA originalFa = fa;
+
+        System.out.println("\nDFA for L is:");
+        FA dfa = fa.convertNfaToDfa();
+        System.out.println(dfa.toString());
+
+        System.out.println("\nFA reverse of L is as below:");
+        FA faReverse = fa.reverseAndSortTransitions();
+        System.out.println(faReverse.toString());
+
+        System.out.println("Enter your *reversed* string :");
+        String lreversed = input.next();
+        faReverse.acceptor(lreversed);
+
+        System.out.println("\nFA Prime is as below:");
+        FA dfaPrime = dfa.convertNfaToDfa();
+        System.out.println(dfaPrime.toString());
+
+//        System.out.println("Prime string result:");
+//        dfaPrime.accept(fa, lString);
+
     }
 
     public static void main(String[] args) {
 
         Scanner input = new Scanner(System.in);
-
         ArrayList<String> lines = new ArrayList<>();
-        String line;
 
-        String startV = "S";
-
-        String s = "S->Aab";
-        lines.add(s);
-        s = "A->Acd";
-        lines.add(s);
-        s = "A->Ba";
-        lines.add(s);
-        s = "B->ef";
-        lines.add(s);
-
-//        String s = "S->abA";
-//        lines.add(s);
-//        s = "A->cdA";
-//        lines.add(s);
-//        s = "A->eB";
-//        lines.add(s);
-//        s = "B->ac";
-//        lines.add(s);
-//        ArrayList<State> states = new ArrayList<>();
-//        State s1 = new State("q1");
-//        State s2 = new State("q2");
-//        State s3 = new State("q3");
-//        
-//        states.add(s1);
-//        states.add(s2);
-//        states.add(s3);
-//        ArrayList<State> qs = new ArrayList<>();
-//        State q = new State("q" + 1);
-//        State lastq = q;
-//        qs.add(q);
-//        System.out.println("q=" + q.getName());
-//        System.out.println("lastq=" + lastq.getName());
-//        System.out.println("qs=" + qs.get(0).getName());
-//
-//        q = new State("q" + 2);
-//        System.out.println("q=" + q.getName());
-//        System.out.println("lastq=" + lastq.getName());
-//        System.out.println("qs=" + qs.get(0).getName());
-        GrammarParser gp = new GrammarParser();
-        FA fa = new FA();
-
-        gp.ParseMultipleLines(lines);
-        gp.toString();
-
-        fa.setStartState(new State(startV));
-        fa.convertPRsToTransition(gp.getPrs());
-//        System.out.println(fa.toString());
-//        FA fa2 = fa.reverse();
-//        System.out.println(fa2.toString());
-//        fa.reverse();
-        FA fa3 = fa.reverseAndSortTransitions();
-        System.out.println(fa3.toString());
-
-        String test = "efacdcdcdab";
-        System.out.println(fa3.acceptor(test));
-
+        StartProcess(input, lines);
     }
 
 }

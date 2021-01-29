@@ -84,6 +84,19 @@ public class GrammarParser {
         return pr.isIsRL();
     }
 
+    public boolean isRL(String s) {
+        // S->Aab here s.charat(3) is A
+        if (java.lang.Character.isUpperCase(s.charAt(3))) { //Left Linear
+            return false;
+        } else if (java.lang.Character.isLowerCase(s.charAt(3))) {//Right Linear
+            if (java.lang.Character.isUpperCase(s.charAt(s.length() - 1))) {
+                return true;
+            } 
+        }
+        return false;
+    }
+   
+
     public ArrayList<ProductionRule> getPrs() {
         return prs;
     }

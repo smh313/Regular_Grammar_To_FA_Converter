@@ -3,18 +3,24 @@ package GrammarToNFa;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author No1
  */
-public class FA {
+public class FA implements Cloneable {
 
     ArrayList<Transition> transitions;
     ArrayList<State> validStates;
-    ArrayList<State> dumpStates;
+    ArrayList<State> dummyStates;
+    ArrayList<Character> terminals;
     int tCount = 0; //state counter
     State startState, finalState, trapState;
+    boolean isPrime = false;
+    boolean isRL = true;
+    
 
     void importTransitions(ArrayList<Transition> t) {
         this.transitions = t;
@@ -34,6 +40,11 @@ public class FA {
         return this;
     }
 
+    public Object clone() throws
+            CloneNotSupportedException {
+        return super.clone();
+    }
+
     public FA reverseAndSortTransitions() {
         reverse();
         Collections.reverse(transitions);
@@ -48,12 +59,6 @@ public class FA {
             }
         }
         return foundTransitions;
-    }
-
-    public FA convertNfaToDfa() {
-
-        FA dfa = new FA();
-        return dfa;
     }
 
     public boolean nextTrans(State q, String s, int iterator) {
@@ -77,7 +82,20 @@ public class FA {
     public boolean acceptor(String s) {
 //        String[] chars = s.split("");
         int iterator = 0;
-        return nextTrans(startState, s, iterator);
+        boolean result = nextTrans(startState, s, iterator);
+
+        if (result) {
+            System.out.println("Accepted");
+        } else {
+            System.out.println("Rejected");
+        }
+        return result;
+    }
+
+    public boolean accept(FA fa, String s) {
+        boolean result = fa.acceptor(s);
+        result = !result;
+        return false;
     }
 
     public State findStateFromPR(ProductionRule p, boolean src) {
@@ -107,26 +125,26 @@ public class FA {
             State startState;
             if (findStateFromPR(p, true) == null) {
                 startState = new State(p.srcV.symbol);
-                System.out.println("q" + startState.getName() + " is " + startState.name);
+//                System.out.println("q" + startState.getName() + " is " + startState.name);
                 validStates.add(startState);
             } else {
                 startState = findStateFromPR(p, true);
-                System.out.println("q" + startState.getName() + " has been created" + startState.name);
+//                System.out.println("q" + startState.getName() + " has been created" + startState.name);
             }
         }
     }
 
     public State getDumpState(int index) {// 0 => last q created (qn) , 1=> pre-last(qn-1)
-        return dumpStates.get(dumpStates.size() - 1 - index);
+        return dummyStates.get(dummyStates.size() - 1 - index);
     }
 
     public void addDumpState(State q) {// 0 => last q created (qn) , 1=> pre-last(qn-1)
-        dumpStates.add(q);
+        dummyStates.add(q);
     }
 
     public void createTransitions(ArrayList<ProductionRule> prs) {
         int qCount = 1;
-        
+
         for (ProductionRule p : prs) {
 
             Transition tran = new Transition();
@@ -187,6 +205,8 @@ public class FA {
     public void convertPRsToTransition(ArrayList<ProductionRule> prs) {
         createInitialStatesForVars(prs);
         createTransitions(prs);
+        
+        
 //        for (Transition t : transitions) {
 //            System.out.println(t.toString());
 //        }
@@ -196,14 +216,136 @@ public class FA {
     public FA() {
         transitions = new ArrayList<>();
         validStates = new ArrayList<>();
-        dumpStates = new ArrayList<>();
+        dummyStates = new ArrayList<>();
         finalState = new State("qf");
         trapState = new State("trap");
     }
 
+    public FA convertNfaToDfa() {
+
+        FA dfa = new FA();
+        try {
+            dfa = (FA) this.clone();
+        } catch (CloneNotSupportedException ex) {
+            Logger.getLogger(FA.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        ArrayList<Transition> trs = new ArrayList<>();
+        ArrayList<Transition> alltrs = new ArrayList<>();
+        alltrs = (ArrayList<Transition>) transitions.clone();
+        dfa.transitions = alltrs;
+        dfa.terminals = new ArrayList<>();
+
+        for (Transition t : transitions) {
+            if (!dfa.terminals.contains(t.getTerminal())) {
+                dfa.terminals.add(t.getTerminal());
+            }
+            if (t.getDestState().getName().equals(finalState.getName())) {
+                t.getDestState().setFinal(true);
+            } else {
+                t.getDestState().setFinal(false);
+            }
+        }
+
+        for (State s : validStates) {
+            trs = findTransitionWithSrc(s);
+            ArrayList<Character> trsChars = new ArrayList<>();
+            for (Transition tr : trs) {
+                trsChars.add(tr.getTerminal());
+            }
+            for (char ch : dfa.terminals) {
+                if (!trsChars.contains(ch)) {
+                    Transition t = new Transition(s, trapState, ch);
+                    dfa.transitions.add(t);
+                }
+            }
+        }
+        for (State s : dummyStates) {
+            trs = findTransitionWithSrc(s);
+            ArrayList<Character> trsChars = new ArrayList<>();
+            for (Transition tr : trs) {
+                trsChars.add(tr.getTerminal());
+            }
+            for (char ch : dfa.terminals) {
+                if (!trsChars.contains(ch)) {
+                    Transition t = new Transition(s, trapState, ch);
+                    dfa.transitions.add(t);
+                }
+            }
+        }
+
+        return dfa;
+    }
+
+    public FA convertDfaToPrime() {
+        isPrime = true;
+        return null;
+    }
+
     @Override
     public String toString() {
-        return "FA{" + "transitions=" + transitions + ", startState=" + startState.getName() + ", finalState=" + finalState.getName() + '}';
+        if (!isPrime) {
+            return "FA{" + "transitions=" + transitions + ",\n" + '{' + startState.getName() + '}' + " is initial & " + '{' + finalState.getName() + '}' + " is final. ";
+        } else {
+            return "FA{" + "transitions=" + transitions + ",\n" + '{' + startState.getName() + '}' + " is initial & " + '{' + finalState.getName() + ",trap" + '}' + " is final. ";
+
+        }
+    }
+
+    public ArrayList<State> getValidStates() {
+        return validStates;
+    }
+
+    public void setValidStates(ArrayList<State> validStates) {
+        this.validStates = validStates;
+    }
+
+    public ArrayList<State> getDummyStates() {
+        return dummyStates;
+    }
+
+    public void setDummyStates(ArrayList<State> dummyStates) {
+        this.dummyStates = dummyStates;
+    }
+
+    public ArrayList<Character> getTerminals() {
+        return terminals;
+    }
+
+    public void setTerminals(ArrayList<Character> terminals) {
+        this.terminals = terminals;
+    }
+
+    public int gettCount() {
+        return tCount;
+    }
+
+    public void settCount(int tCount) {
+        this.tCount = tCount;
+    }
+
+    public State getTrapState() {
+        return trapState;
+    }
+
+    public void setTrapState(State trapState) {
+        this.trapState = trapState;
+    }
+
+    public boolean isIsPrime() {
+        return isPrime;
+    }
+
+    public void setIsPrime(boolean isPrime) {
+        this.isPrime = isPrime;
+    }
+
+    public ArrayList<Transition> getTransitions() {
+        return transitions;
+    }
+
+    public void setTransitions(ArrayList<Transition> transitions) {
+        this.transitions = transitions;
     }
 
     public State getFinalState() {
@@ -215,4 +357,21 @@ public class FA {
         this.startState = startState;
     }
 
+    public State getStartState() {
+        return startState;
+    }
+
+    public boolean isIsRL() {
+        return isRL;
+    }
+
+    public void setIsRL(boolean isRL) {
+        this.isRL = isRL;
+    }
+
+    public void setFinalState(State finalState) {
+        this.finalState = finalState;
+    }
+
+    
 }
